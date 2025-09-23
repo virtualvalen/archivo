@@ -1,0 +1,22 @@
+def leer(nombre):
+    archivo = open(nombre, "r")
+    linea = archivo.readline()
+    arreglo = []
+    while linea:
+        if linea!="" and linea!="\n":
+            arreglo.append(linea.strip('\n'))
+        linea = archivo.readline()
+    archivo.close()
+    ordenar(arreglo,nombre)
+def ordenar(arreglo,nombre):
+    for i in range(len(arreglo))):
+        for j in range(len(arreglo)-1)):
+            if int(arreglo[i]) < int(arreglo[j]):
+                arreglo[i],arreglo[j]=arreglo[j],arreglo[i]
+    escribir(arreglo,nombre)
+def escribir(arreglo,nombre):
+    archivo = open(nombre, "w")
+    for i in range(len(arreglo)):
+        archivo.write(arreglo[i]+"\n")
+    archivo.close()
+leer("archivo.txt")
