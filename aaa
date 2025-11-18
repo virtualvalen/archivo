@@ -1,0 +1,29 @@
+def guardar_en_txt(soluciones):
+    with open("soluciones.txt", "w", encoding="utf-8") as f:
+        if not soluciones:
+            f.write("No hay caminos válidos.\n")
+            return
+
+        for i, camino in enumerate(soluciones, 1):
+
+            f.write(f"Camino {i}:\n")
+            f.write(" → ".join(str(p) for p in camino) + "\n")
+
+            # Crear copia del tablero original con obstáculos
+            tablero = [[0]*MAX for _ in range(MAX)]
+            colocar_obstaculos(tablero)
+
+            # Marcar el camino en el tablero copia
+            paso = 1
+            for (x, y) in camino:
+                tablero[x][y] = paso
+                paso += 1
+
+            # Guardar el tablero en el archivo
+            f.write("Tablero:\n")
+            for fila in tablero:
+                f.write(" ".join(f"{c:2}" for c in fila) + "\n")
+
+            f.write("\n")  # Separación entre caminos
+
+        f.write(f"Total de caminos encontrados: {len(soluciones)}\n")
