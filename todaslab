@@ -1,0 +1,150 @@
+MAX = 4
+
+# ---- Movimientos posibles (derecha, abajo, izquierda, arriba) ----
+posx = [0, 1, 0, -1]
+posy = [1, 0, -1, 0]
+
+
+# ---- Función que valida si se puede mover a la posición nx, ny ----
+def valida(tablero, candidato, x, y):
+    nx = x + posx[candidato - 1]
+    ny = y + posy[candidato - 1]
+
+    if nx < 0 or nx >= MAX or ny < 0 or ny >= MAX:
+        return False
+
+    if tablero[nx][ny] == 0:
+        return True
+
+    return False
+
+
+# ---- Siguiente posición ----
+def siguiente_posicion(x, y, candidato):
+    return x + posx[candidato - 1], y + posy[candidato - 1]
+
+
+# ---- Verifica si llegamos al final ----
+def final(nx, ny):
+    return nx == MAX - 1 and ny == MAX - 1
+
+
+# ---- Busca las coordenadas de un número en el tablero ----
+def buscar_xy(tablero, contador):
+    for i in range(MAX):
+        for j in range(MAX):
+            if tablero[i][j] == contador:
+                return i, j
+    return None, None
+
+
+# ---- FUNCION ITERATIVA PARA ENCONTRAR TODAS LAS SOLUCIONES ----
+def encontrar_todas(tablero):
+    soluciones = []
+    archivo = open("soluciones.txt", "w")
+
+    tablero_aux = [[0] * MAX for _ in range(MAX)]
+
+    # --- STACK MANUAL (ITERATIVO) ---
+    while True:
+        # Inicializar
+        tablero_actual = [fila[:] for fila in tablero]
+        aux_actual = [[0] * MAX for _ in range(MAX)]
+
+        x, y = 0, 0
+        contador = 1
+        tablero_actual[x][y] = contador
+        candidato = 1
+
+        hay_solucion = False
+
+        # ----------- BACKTRACKING ITERATIVO -----------
+        while True:
+            if candidato <= 4 and valida(tablero_actual, candidato, x, y):
+                nx, ny = siguiente_posicion(x, y, candidato)
+                tablero_actual[nx][ny] = contador + 1
+
+                if final(nx, ny):
+                    # --- Se encontró una solución ---
+                    soluciones.append([fila[:] for fila in tablero_actual])
+
+                    archivo.write("Solución encontrada:\n")
+                    for fila in tablero_actual:
+                        archivo.write(" ".join(f"{c:2}" for c in fila) + "\n")
+                    archivo.write("\n")
+
+                    hay_solucion = True
+                    break
+
+                aux_actual[x][y] = candidato
+                x, y = nx, ny
+                contador += 1
+                candidato = 1
+
+            else:
+                candidato += 1
+
+                while candidato > 4 and not (x == 0 and y == 0):
+                    tablero_actual[x][y] = 0
+                    contador -= 1
+                    x, y = buscar_xy(tablero_actual, contador)
+
+                    if x is None:
+                        break
+
+                    candidato = aux_actual[x][y] + 1
+                    aux_actual[x][y] = 0
+
+                if x is None:
+                    break
+
+                if x == 0 and y == 0 and candidato > 4:
+                    break
+
+            # fin while principal
+
+        # Si no se encontró ninguna en esta vuelta, terminó todo
+        if not hay_solucion:
+            break
+
+        # Para permitir encontrar más soluciones:
+        tablero = soluciones[-1]
+        # Resetea el número final para probar más caminos
+        tablero[MAX - 1][MAX - 1] = 0
+
+    archivo.close()
+    return soluciones
+
+
+# ---- Muestra el tablero ----
+def mostrar_tablero(tablero):
+    for fila in tablero:
+        print(" ".join(f"{c:2}" for c in fila))
+    print("")
+
+
+# ---- Colocar obstáculos ----
+def colocar_obstaculo(tablero):
+    tablero[0][3] = -1
+    tablero[1][1] = -1
+    tablero[2][1] = -1
+    tablero[2][2] = -1
+    tablero[2][3] = -1
+
+
+# ---- PROGRAMA PRINCIPAL ----
+tablero = [[0] * MAX for _ in range(MAX)]
+colocar_obstaculo(tablero)
+
+print("Tablero con obstáculos:")
+mostrar_tablero(tablero)
+
+soluciones = encontrar_todas(tablero)
+
+print(f"Total de soluciones encontradas: {len(soluciones)}\n")
+
+num = 1
+for sol in soluciones:
+    print(f"Solución #{num}:")
+    mostrar_tablero(sol)
+    num += 1
